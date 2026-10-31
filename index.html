@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Dream To Empire">
-<link rel="manifest" id="manifestLink">
+<link rel="manifest" id="manifestLink" href="./manifest.json">
 <title>Dream To Empire</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -1362,35 +1362,8 @@ $("soundBtn").addEventListener("click",()=>{
   save();
 });
 
-/* ---------- PWA manifest (inline) + install ---------- */
+/* ---------- PWA install ---------- */
 let deferredPrompt=null;
-(function pwa(){
-  const manifest={
-    name:"Dream To Empire",
-    short_name:"DTE",
-    description:"Build four businesses from a single dream. By Noor Mohammad Siddiki.",
-    start_url:"./index.html",
-    scope:"./",
-    display:"standalone",
-    orientation:"portrait",
-    background_color:"#05070d",
-    theme_color:"#05070d",
-    icons:[
-      {src:"data:image/svg+xml,"+encodeURIComponent(
-        '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">'+
-        '<rect width="512" height="512" rx="96" fill="#0d1117"/>'+
-        '<text x="256" y="300" font-size="240" text-anchor="middle">🏆</text></svg>'),
-       sizes:"512x512", type:"image/svg+xml", purpose:"any"},
-      {src:"data:image/svg+xml,"+encodeURIComponent(
-        '<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192">'+
-        '<rect width="192" height="192" rx="36" fill="#0d1117"/>'+
-        '<text x="96" y="128" font-size="110" text-anchor="middle">🏆</text></svg>'),
-       sizes:"192x192", type:"image/svg+xml", purpose:"maskable"}
-    ]
-  };
-  const blob=new Blob([JSON.stringify(manifest)],{type:"application/json"});
-  document.getElementById("manifestLink").href=URL.createObjectURL(blob);
-})();
 
 window.addEventListener("beforeinstallprompt", e=>{
   e.preventDefault();
