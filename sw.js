@@ -1,8 +1,11 @@
 /* Dream To Empire — Service Worker (Offline Support) */
-const CACHE = "dte-cache-v1";
+const CACHE = "dte-cache-v2";
 const ASSETS = [
   "./",
-  "./index.html"
+  "./index.html",
+  "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -28,17 +31,13 @@ self.addEventListener("fetch", (event) => {
       if (cached) return cached;
       return fetch(event.request)
         .then((response) => {
-          // Cache successful same-origin responses
           if (response && response.status === 200 && response.type === "basic") {
             const copy = response.clone();
             caches.open(CACHE).then((cache) => cache.put(event.request, copy));
           }
           return response;
         })
-        .catch(() =>
-          // Offline fallback: serve the app shell
-          caches.match("./index.html")
-        );
+        .catch(() => caches.match("./index.html"));
     })
   );
 });
