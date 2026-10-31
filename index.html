@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05070d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dream To Empire">
+<link rel="manifest" id="manifestLink">
+<title>Dream To Empire</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:#05070d;color:#e6edf3;overflow:hidden;user-select:none;overscroll-behavior:none}
+  #app{max-width:560px;margin:0 auto;height:100%;display:flex;flex-direction:column;
+    position:relative;overflow:hidden;background:#0a0f1c}
+
+  /* ============ SKY / SCENE BACKGROUND ============ */
+  .sky{position:absolute;inset:0;overflow:hidden;transition:background 2s ease}
+  .sky.day{background:linear-gradient(180deg,#1e4a7a 0%,#3b7bb5 45%,#7fb3d5 100%)}
+  .sky.evening{background:linear-gradient(180deg,#2b1a4a 0%,#7a3b6b 45%,#e08a52 100%)}
+  .sky.night{background:linear-gradient(180deg,#050a18 0%,#0d1730 50%,#16203a 100%)}
+  .sky.dawn{background:linear-gradient(180deg,#1a2340 0%,#4a3a6b 45%,#e8a06b 100%)}
+  .stars{position:absolute;inset:0;opacity:0;transition:opacity 1.5s ease}
+  .sky.night .stars,.sky.dawn .stars{opacity:.85}
+  .star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;animation:tw 3s ease-in-out infinite}
+  @keyframes tw{0%,100%{opacity:.15}50%{opacity:.95}}
+  .sun{position:absolute;width:60px;height:60px;border-radius:50%;
+    background:radial-gradient(circle,#fff8d0,#ffd970 45%,#f0b429);
+    box-shadow:0 0 60px rgba(240,180,41,.7);transition:all 2s ease;opacity:0}
+  .sky.day .sun{opacity:1;top:12%;left:70%}
+  .sky.evening .sun{opacity:1;top:55%;left:18%;background:radial-gradient(circle,#ffe0a0,#ff8a52 45%,#e0552b)}
+  .sky.dawn .sun{opacity:1;top:52%;left:78%;background:radial-gradient(circle,#ffe8c0,#ffb060 45%,#f08840)}
+  .moon{position:absolute;width:44px;height:44px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%,#f8f8f0,#d8d8cc);
+    box-shadow:0 0 40px rgba(220,230,255,.6);top:10%;left:74%;opacity:0;transition:opacity 1.5s ease}
+  .sky.night .moon{opacity:1}
+  .cloud{position:absolute;font-size:34px;opacity:.55;animation:drift linear infinite;pointer-events:none}
+  @keyframes drift{from{transform:translateX(-120px)}to{transform:translateX(calc(100vw + 120px))}}
+  .ground{position:absolute;left:0;right:0;bottom:0;height:36%;
+    background:linear-gradient(180deg,transparent,rgba(0,0,0,.6))}
+  .glow{position:absolute;left:50%;top:40%;width:360px;height:360px;transform:translate(-50%,-50%);
+    border-radius:50%;filter:blur(70px);opacity:.4;transition:background .8s ease}
+
+  /* ============ TOP BAR ============ */
+  .topbar{padding:8px 11px 7px;flex-shrink:0;z-index:25;
+    background:linear-gradient(180deg,rgba(8,12,22,.98),rgba(8,12,22,.7));
+    border-bottom:1px solid rgba(240,180,41,.18)}
+  .brandrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .brandrow .t{font-size:12px;letter-spacing:2.4px;font-weight:900;
+    background:linear-gradient(90deg,#f0b429,#ffd970,#f0b429);-webkit-background-clip:text;
+    background-clip:text;-webkit-text-fill-color:transparent}
+  .brandrow .s{font-size:7.5px;color:#5b6472;letter-spacing:.7px}
+  .iconbtns{display:flex;gap:5px}
+  .iconbtn{width:26px;height:26px;border-radius:8px;border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.06);color:#e6edf3;font-size:13px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:all .15s}
+  .iconbtn:active{transform:scale(.9);background:rgba(240,180,41,.2)}
+  .stats{display:flex;gap:5px}
+  .stat{flex:1;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07);
+    border-radius:9px;padding:5px 7px;min-width:0}
+  .stat .lbl{font-size:7.5px;color:#6e7681;letter-spacing:.7px;text-transform:uppercase;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stat .val{font-size:13px;font-weight:800;color:#3fb950;margin-top:1px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stat.blue .val{color:#58a6ff}.stat.gold .val{color:#f0b429}.stat.purple .val{color:#a371f7}
+
+  /* ============ SCENE ============ */
+  .scene{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;overflow:hidden;padding:8px 12px}
+  .shop-wrap{position:relative;z-index:6;display:flex;flex-direction:column;align-items:center}
+  .shop-visual{font-size:92px;line-height:1;cursor:pointer;position:relative;
+    filter:drop-shadow(0 14px 26px rgba(0,0,0,.75));transition:transform .12s ease}
+  .shop-visual:active{transform:scale(.9)}
+  .shop-visual.pop{animation:pop .3s cubic-bezier(.3,1.6,.5,1)}
+  @keyframes pop{0%{transform:scale(1)}42%{transform:scale(1.26) rotate(-4deg)}100%{transform:scale(1)}}
+  .staff-ring{position:absolute;inset:-42px;pointer-events:none;z-index:5}
+  .staff{position:absolute;font-size:21px;left:50%;top:50%;transform-origin:0 0;
+    animation:orbit linear infinite;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6))}
+  @keyframes orbit{from{transform:rotate(0) translateX(80px) rotate(0)}to{transform:rotate(360deg) translateX(80px) rotate(-360deg)}}
+  .cust{position:absolute;font-size:22px;bottom:6px;animation:walk linear forwards;pointer-events:none;z-index:7}
+  @keyframes walk{from{transform:translateX(-40px) scaleX(1)}to{transform:translateX(340px) scaleX(1)}}
+  .shop-name{font-size:20px;font-weight:900;letter-spacing:.3px;z-index:6;
+    text-shadow:0 3px 12px rgba(0,0,0,.9);margin-top:1px;text-align:center}
+  .shop-stage{font-size:9.5px;letter-spacing:2.1px;text-transform:uppercase;font-weight:800;
+    margin-top:3px;z-index:6;opacity:.95}
+  .desc{font-size:10.5px;color:#9aa4b2;margin-top:7px;z-index:6;max-width:320px;
+    line-height:1.5;text-align:center}
+  .combo{position:absolute;top:8px;right:12px;z-index:30;font-size:13px;font-weight:900;
+    color:#ffd970;opacity:0;transition:opacity .2s;text-shadow:0 0 12px rgba(240,180,41,.9)}
+  .combo.on{opacity:1;animation:comboPulse .4s ease infinite alternate}
+  @keyframes comboPulse{from{transform:scale(1)}to{transform:scale(1.14)}}
+
+  .progress-wrap{width:100%;max-width:330px;margin-top:11px;z-index:6}
+  .progress-label{display:flex;justify-content:space-between;font-size:9.5px;color:#8b949e;
+    margin-bottom:4px;letter-spacing:.3px}
+  .progress-bar{height:11px;background:rgba(255,255,255,.07);border-radius:8px;overflow:hidden;
+    border:1px solid rgba(255,255,255,.06)}
+  .progress-fill{height:100%;width:0;border-radius:8px;transition:width .35s ease;
+    background:linear-gradient(90deg,#3fb950,#56d364,#7ee787);box-shadow:0 0 14px rgba(63,185,80,.6)}
+  .tracker{display:flex;gap:6px;justify-content:center;margin-top:10px;z-index:6}
+  .tracker .dot{width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;
+    font-size:13px;opacity:.4;transition:all .35s}
+  .tracker .dot.active{opacity:1;background:rgba(240,180,41,.16);border-color:#f0b429;
+    box-shadow:0 0 14px rgba(240,180,41,.45);transform:scale(1.12)}
+  .tracker .dot.done{opacity:1;background:rgba(63,185,80,.18);border-color:#3fb950}
+
+  .float{position:absolute;font-size:16px;font-weight:900;color:#7ee787;pointer-events:none;
+    animation:floatUp 1.05s ease-out forwards;z-index:40;text-shadow:0 2px 8px rgba(0,0,0,.9)}
+  @keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}
+    100%{opacity:0;transform:translateY(-78px) scale(1.25)}}
+  .coin{position:absolute;font-size:16px;pointer-events:none;z-index:39;
+    animation:coinFly .9s ease-out forwards}
+  @keyframes coinFly{0%{opacity:1;transform:translateY(0) rotate(0)}
+    100%{opacity:0;transform:translateY(-90px) rotate(360deg)}}
+  .bonus{position:absolute;z-index:35;font-size:30px;cursor:pointer;
+    animation:bonusFloat 6s ease-in-out infinite;filter:drop-shadow(0 0 12px rgba(240,180,41,.9))}
+  @keyframes bonusFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+
+  /* ============ PANEL ============ */
+  .panel{flex-shrink:0;z-index:25;padding:9px 11px 12px;
+    background:linear-gradient(180deg,rgba(8,12,22,.7),rgba(8,12,22,.99));
+    border-top:1px solid rgba(240,180,41,.18)}
+  .row{display:flex;gap:6px;margin-bottom:6px}
+  .btn{flex:1;border:none;border-radius:11px;padding:10px 7px;font-size:11.5px;font-weight:800;
+    letter-spacing:.25px;cursor:pointer;font-family:inherit;transition:transform .1s,opacity .2s,box-shadow .2s}
+  .btn:active{transform:scale(.96)}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+  .btn small{display:block;font-size:8.5px;font-weight:600;opacity:.82;margin-top:2px}
+  .btn-gold{background:linear-gradient(135deg,#f0b429,#e3a008);color:#0d1117;box-shadow:0 4px 14px rgba(240,180,41,.3)}
+  .btn-green{background:linear-gradient(135deg,#3fb950,#2ea043);color:#0d1117;box-shadow:0 4px 14px rgba(63,185,80,.3)}
+  .btn-blue{background:linear-gradient(135deg,#58a6ff,#1f6feb);color:#fff;box-shadow:0 4px 14px rgba(88,166,255,.3)}
+  .btn-purple{background:linear-gradient(135deg,#a371f7,#8957e5);color:#fff;box-shadow:0 4px 14px rgba(163,113,247,.3)}
+  .btn-red{background:linear-gradient(135deg,#ff7b72,#da3633);color:#fff;box-shadow:0 4px 14px rgba(255,123,114,.3)}
+  .btn-ghost{background:rgba(255,255,255,.07);color:#e6edf3}
+  .btn-wide{width:100%}
+  .note{font-size:9.5px;color:#8b949e;text-align:center;line-height:1.5;margin-top:2px}
+  .note b{color:#f0b429}
+
+  /* ============ SHEET (full screen menu) ============ */
+  .sheet{position:absolute;inset:0;z-index:70;background:rgba(0,0,0,.75);
+    display:none;align-items:flex-end;backdrop-filter:blur(3px)}
+  .sheet.show{display:flex}
+  .sheet-card{width:100%;max-height:88%;overflow-y:auto;border-radius:20px 20px 0 0;
+    background:linear-gradient(160deg,#161f31,#0c1220);border-top:1px solid rgba(240,180,41,.35);
+    padding:16px 15px 22px;animation:slideUp .3s cubic-bezier(.3,1.3,.5,1)}
+  @keyframes slideUp{from{transform:translateY(60px);opacity:.4}to{transform:translateY(0);opacity:1}}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .sheet-head h3{font-size:15px;letter-spacing:.5px;color:#f0b429}
+  .closebtn{width:28px;height:28px;border-radius:9px;border:1px solid rgba(255,255,255,.14);
+    background:rgba(255,255,255,.06);color:#e6edf3;font-size:15px;cursor:pointer}
+  .tabs{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap}
+  .tab{padding:6px 11px;border-radius:9px;border:1px solid rgba(255,255,255,.1);
+    background:rgba(255,255,255,.04);color:#9aa4b2;font-size:10.5px;font-weight:700;cursor:pointer}
+  .tab.on{background:rgba(240,180,41,.18);border-color:#f0b429;color:#f0b429}
+  .list{display:flex;flex-direction:column;gap:7px}
+  .item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:10px 11px}
+  .item .ic{font-size:22px;flex-shrink:0}
+  .item .tx{flex:1;min-width:0}
+  .item .tx .n{font-size:12px;font-weight:800}
+  .item .tx .d{font-size:9.5px;color:#8b949e;margin-top:1px;line-height:1.4}
+  .item .act{flex-shrink:0}
+  .mini{min-width:76px;border:none;border-radius:9px;padding:8px 10px;font-size:10px;
+    font-weight:800;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#3fb950,#2ea043);color:#0d1117}
+  .mini:disabled{opacity:.35;cursor:not-allowed}
+  .mini.gold{background:linear-gradient(135deg,#f0b429,#e3a008)}
+  .mini.blue{background:linear-gradient(135deg,#58a6ff,#1f6feb);color:#fff}
+  .mini.purple{background:linear-gradient(135deg,#a371f7,#8957e5);color:#fff}
+  .mini small{display:block;font-size:8px;opacity:.82;margin-top:1px}
+  .ach{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:11px;
+    background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);opacity:.5}
+  .ach.got{opacity:1;background:rgba(63,185,80,.12);border-color:rgba(63,185,80,.5)}
+  .ach .ic{font-size:20px}
+  .ach .n{font-size:11.5px;font-weight:700}
+  .ach .d{font-size:9px;color:#8b949e}
+  .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .statbox{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+    border-radius:11px;padding:10px}
+  .statbox .k{font-size:9px;color:#8b949e;letter-spacing:.5px;text-transform:uppercase}
+  .statbox .v{font-size:16px;font-weight:900;color:#f0b429;margin-top:3px}
+
+  /* ============ MODAL ============ */
+  .modal{position:absolute;inset:0;background:rgba(0,0,0,.85);z-index:85;display:none;
+    align-items:center;justify-content:center;padding:22px;backdrop-filter:blur(4px)}
+  .modal.show{display:flex}
+  .modal-card{background:linear-gradient(160deg,#1a2233,#0f1626);border:1px solid rgba(240,180,41,.35);
+    border-radius:20px;padding:24px 20px;text-align:center;max-width:360px;width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,.8),0 0 40px rgba(240,180,41,.12);
+    animation:pop .35s cubic-bezier(.3,1.5,.5,1)}
+  .modal-card .big{font-size:56px;margin-bottom:6px}
+  .modal-card h2{font-size:18px;margin-bottom:8px;letter-spacing:.4px;
+    background:linear-gradient(90deg,#f0b429,#ffd970);-webkit-background-clip:text;
+    background-clip:text;-webkit-text-fill-color:transparent}
+  .modal-card p{font-size:12.5px;color:#9aa4b2;line-height:1.6;margin-bottom:16px}
+  .modal-card p b{color:#e6edf3}
+
+  .confetti{position:absolute;width:9px;height:9px;top:-12px;z-index:95;border-radius:2px;
+    animation:fall linear forwards;pointer-events:none}
+  @keyframes fall{to{transform:translateY(110vh) rotate(760deg);opacity:0}}
+  .toast{position:absolute;left:50%;top:74px;transform:translateX(-50%) translateY(-16px);
+    background:rgba(240,180,41,.96);color:#0d1117;font-size:11.5px;font-weight:800;
+    padding:8px 15px;border-radius:20px;z-index:75;opacity:0;transition:all .3s;
+    pointer-events:none;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.6);max-width:88%;
+    overflow:hidden;text-overflow:ellipsis}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ============ CSS-PAINTED SHOP (real shop art) ============ */
+  .shop-art{position:relative;width:210px;height:150px;cursor:pointer;
+    transform-origin:50% 100%;transition:transform .12s ease;
+    filter:drop-shadow(0 16px 24px rgba(0,0,0,.7))}
+  .shop-art:active{transform:scale(.94)}
+  .shop-art.pop{animation:pop .3s cubic-bezier(.3,1.6,.5,1)}
+  .shop-art svg{width:100%;height:100%;display:block;overflow:visible}
+  .sa-part{transition:opacity .4s ease}
+  /* stage growth: lvl1 small stall, lvl2 shop, lvl3 big building */
+  .shop-art[data-lvl="1"] .sa-l2,.shop-art[data-lvl="1"] .sa-l3{opacity:0}
+  .shop-art[data-lvl="2"] .sa-l3{opacity:0}
+  .shop-art[data-lvl="2"] .sa-l2,.shop-art[data-lvl="3"] .sa-l2,
+  .shop-art[data-lvl="3"] .sa-l3{opacity:1}
+  .sa-sign{font-weight:900}
+  /* neon flicker for the sign */
+  .shop-art .sa-neon{animation:neon 3.2s ease-in-out infinite}
+  @keyframes neon{0%,100%{opacity:1}47%{opacity:1}50%{opacity:.55}53%{opacity:1}}
+  .sa-smoke{animation:smoke 4s ease-in-out infinite}
+  @keyframes smoke{0%{opacity:.5;transform:translateY(0)}50%{opacity:.15;transform:translateY(-9px)}100%{opacity:.5;transform:translateY(0)}}
+  .sa-blink{animation:blink 1.6s steps(1) infinite}
+  @keyframes blink{0%,60%{opacity:1}61%,100%{opacity:.25}}
+
+  /* ============ LEADERBOARD ============ */
+  .lbrow{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:11px;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);margin-bottom:6px}
+  .lbrow.me{background:rgba(240,180,41,.14);border-color:rgba(240,180,41,.5)}
+  .lbrow .rk{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.07);
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0}
+  .lbrow .rk.g1{background:linear-gradient(135deg,#f0b429,#e3a008);color:#0d1117}
+  .lbrow .rk.g2{background:linear-gradient(135deg,#c9d1d9,#8b949e);color:#0d1117}
+  .lbrow .rk.g3{background:linear-gradient(135deg,#cd7f32,#a05a1f);color:#fff}
+  .lbrow .nm{flex:1;min-width:0;font-size:11.5px;font-weight:800;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+  .lbrow .nm small{display:block;font-size:8.5px;color:#8b949e;font-weight:600}
+  .lbrow .sc{font-size:12px;font-weight:900;color:#f0b429;flex-shrink:0}
+
+  /* ============ MISSIONS ============ */
+  .msn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+    border-radius:11px;padding:10px 11px;margin-bottom:7px}
+  .msn.done{background:rgba(63,185,80,.12);border-color:rgba(63,185,80,.5)}
+  .msn .top{display:flex;align-items:center;gap:9px}
+  .msn .ic{font-size:20px;flex-shrink:0}
+  .msn .tx{flex:1;min-width:0}
+  .msn .n{font-size:11.5px;font-weight:800}
+  .msn .d{font-size:9px;color:#8b949e;margin-top:1px}
+  .msn .rw{font-size:9.5px;color:#f0b429;font-weight:800;margin-top:3px}
+  .msn .bar{height:6px;background:rgba(255,255,255,.08);border-radius:5px;margin-top:7px;overflow:hidden}
+  .msn .bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#3fb950,#7ee787)}
+  .msn .mini{margin-top:8px;width:100%}
+
+  /* install banner */
+  .installbar{position:absolute;left:11px;right:11px;bottom:11px;z-index:60;display:none;
+    align-items:center;gap:10px;background:linear-gradient(135deg,#1a2233,#0f1626);
+    border:1px solid rgba(240,180,41,.45);border-radius:14px;padding:11px 12px;
+    box-shadow:0 12px 34px rgba(0,0,0,.75)}
+  .installbar.show{display:flex;animation:slideUp .35s cubic-bezier(.3,1.3,.5,1)}
+  .installbar .ii{font-size:24px}
+  .installbar .it{flex:1;min-width:0}
+  .installbar .it b{font-size:11.5px;display:block}
+  .installbar .it span{font-size:9px;color:#8b949e}
+  .installbar button{border:none;border-radius:9px;padding:8px 12px;font-size:10px;
+    font-weight:800;font-family:inherit;cursor:pointer}
+  .installbar .yes{background:linear-gradient(135deg,#f0b429,#e3a008);color:#0d1117}
+  .installbar .no{background:rgba(255,255,255,.1);color:#e6edf3}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="sky night" id="sky">
+    <div class="stars" id="stars"></div>
+    <div class="sun" id="sun"></div>
+    <div class="moon" id="moon"></div>
+    <div class="glow" id="glow"></div>
+    <div class="ground"></div>
+  </div>
+
+  <div class="topbar">
+    <div class="brandrow">
+      <div class="t">DREAM TO EMPIRE</div>
+      <div class="iconbtns">
+        <button class="iconbtn" id="menuBtn" title="Menu">☰</button>
+        <button class="iconbtn" id="soundBtn" title="Sound">🔊</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="lbl">Cash</div><div class="val" id="cash">$0</div></div>
+      <div class="stat blue"><div class="lbl">Per Sec</div><div class="val" id="perSec">$0</div></div>
+      <div class="stat purple"><div class="lbl">Tap</div><div class="val" id="tapShow">$1</div></div>
+      <div class="stat gold"><div class="lbl">Empire</div><div class="val" id="empire">0/4</div></div>
+    </div>
+  </div>
+
+  <div class="scene" id="scene">
+    <div class="combo" id="combo"></div>
+    <div class="shop-wrap">
+      <div class="staff-ring" id="staffRing"></div>
+      <div class="shop-art" id="shopArt" data-lvl="1" data-biz="0"></div>
+    </div>
+    <div class="shop-name" id="shopName">Authentic Tea Store</div>
+    <div class="shop-stage" id="shopStage">Stage 1 · Street Stall</div>
+    <div class="desc" id="desc">A tiny roadside tea stall. One kettle, a few cups.</div>
+
+    <div class="progress-wrap">
+      <div class="progress-label"><span id="progLabel">Progress</span><span id="progPct">0%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+    </div>
+    <div class="tracker" id="tracker"></div>
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <button class="btn btn-green" id="tapPowerBtn">⚡ TAP</button>
+      <button class="btn btn-blue" id="hireBtn">🤖 STAFF</button>
+      <button class="btn btn-purple" id="mktBtn">📢 ADS</button>
+    </div>
+    <div class="row">
+      <button class="btn btn-gold btn-wide" id="upgradeBtn">UPGRADE SHOP</button>
+    </div>
+    <button class="btn btn-red btn-wide" id="openBtn" style="display:none;">OPEN NEXT BUSINESS</button>
+    <div class="note" id="note"></div>
+  </div>
+
+  <!-- ===== MENU SHEET ===== -->
+  <div class="sheet" id="sheet">
+    <div class="sheet-card">
+      <div class="sheet-head">
+        <h3 id="sheetTitle">MENU</h3>
+        <button class="closebtn" id="sheetClose">✕</button>
+      </div>
+      <div class="tabs" id="tabs">
+        <div class="tab on" data-tab="upgrades">⚙ Upgrades</div>
+        <div class="tab" data-tab="products">🛒 Products</div>
+        <div class="tab" data-tab="missions">🎯 Missions</div>
+        <div class="tab" data-tab="leaderboard">🌐 Leaderboard</div>
+        <div class="tab" data-tab="achievements">🏆 Achievements</div>
+        <div class="tab" data-tab="stats">📊 Stats</div>
+        <div class="tab" data-tab="settings">⚙ Settings</div>
+      </div>
+      <div id="sheetBody"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <div class="big" id="modalIcon">🏆</div>
+      <h2 id="modalTitle">Congratulations!</h2>
+      <p id="modalText"></p>
+      <button class="btn btn-gold btn-wide" id="modalBtn">CONTINUE</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="installbar" id="installBar">
+    <div class="ii">📲</div>
+    <div class="it"><b>Install Dream To Empire</b><span>Play offline, like a real app</span></div>
+    <button class="yes" id="installYes">INSTALL</button>
+    <button class="no" id="installNo">✕</button>
+  </div>
+</div>
+
+<script>
+/* =============================================================
+   DREAM TO EMPIRE  —  FINAL EDITION
+   4 businesses · idle + active play · 26 features
+   + Leaderboard · Missions · CSS shop art · PWA install
+   ============================================================= */
+
+const BUSINESSES = [
+  { key:"tea", name:"Authentic Tea Store", icon:"🍵", theme:"#f0b429", glow:"#f0b429",
+    products:[
+      {n:"Plain Tea",   e:"🍵", cost:0,      mult:1.00},
+      {n:"Milk Tea",    e:"🥛", cost:600,    mult:1.35},
+      {n:"Masala Tea",  e:"🌿", cost:4500,   mult:1.8},
+      {n:"Green Tea",   e:"🍃", cost:30000,  mult:2.4},
+      {n:"Premium Blend",e:"✨",cost:200000, mult:3.2}
+    ],
+    stages:[
+      {stage:"Street Stall",   emoji:"🛖", tap:1,  goal:150,    staffCost:120,    staffRate:1,   desc:"A tiny roadside tea stall. One kettle, a few cups."},
+      {stage:"Small Tea Shop", emoji:"🏪", tap:5,  goal:1200,   staffCost:900,    staffRate:6,   desc:"Tables, chairs and fresh snacks. Customers are coming back."},
+      {stage:"Tea Café",       emoji:"🏢", tap:18, goal:8000,   staffCost:5000,   staffRate:30,  desc:"A professional tea café. Ten blends, a full team."}
+    ]},
+  { key:"frame", name:"Inner Frame", icon:"📷", theme:"#58a6ff", glow:"#1f6feb",
+    products:[
+      {n:"Used Lenses",  e:"🔍", cost:0,      mult:1.00},
+      {n:"Point & Shoot",e:"📸", cost:25000,  mult:1.35},
+      {n:"DSLR Bodies",  e:"📷", cost:180000, mult:1.8},
+      {n:"Mirrorless",   e:"🎞️", cost:1200000,mult:2.4},
+      {n:"Cinema Rigs",  e:"🎥", cost:8000000,mult:3.2}
+    ],
+    stages:[
+      {stage:"Camera Corner",    emoji:"📦", tap:9,  goal:6000,   staffCost:3500,   staffRate:22,  desc:"A small corner selling used cameras and lenses."},
+      {stage:"Camera Shop",      emoji:"🏬", tap:32, goal:40000,  staffCost:22000,  staffRate:110, desc:"Branded cameras, tripods, memory cards — a real shop."},
+      {stage:"Pro Camera Store", emoji:"🏢", tap:100,goal:250000, staffCost:120000, staffRate:420, desc:"A professional camera showroom with expert staff."}
+    ]},
+  { key:"clio", name:"Clio", icon:"🤖", theme:"#a371f7", glow:"#8957e5",
+    products:[
+      {n:"Repair Service", e:"🔧", cost:0,       mult:1.00},
+      {n:"Helper Bot",     e:"🤖", cost:400000,  mult:1.35},
+      {n:"Home Robot",     e:"🏠", cost:3000000, mult:1.8},
+      {n:"Office AI Unit", e:"🧠", cost:20000000,mult:2.4},
+      {n:"Clio Core",      e:"💠", cost:150000000,mult:3.2}
+    ],
+    stages:[
+      {stage:"Robot Workshop",   emoji:"🔧", tap:45, goal:90000,   staffCost:50000,   staffRate:260,  desc:"A workshop assembling and repairing small robots."},
+      {stage:"Robot Showroom",   emoji:"🏬", tap:160,goal:600000,  staffCost:300000,  staffRate:950,  desc:"A showroom full of helper robots for homes and offices."},
+      {stage:"Clio Robotics HQ", emoji:"🏢", tap:520,goal:3500000, staffCost:1500000, staffRate:3200, desc:"A professional robotics company. The future is here."}
+    ]},
+  { key:"truckres", name:"Truckres", icon:"🚚", theme:"#ff7b72", glow:"#da3633",
+    products:[
+      {n:"Used Cars",   e:"🛻", cost:0,        mult:1.00},
+      {n:"City Sedans", e:"🚗", cost:9000000,  mult:1.35},
+      {n:"SUVs",        e:"🚙", cost:70000000, mult:1.8},
+      {n:"Trucks",      e:"🚚", cost:500000000,mult:2.4},
+      {n:"Fleet Deals", e:"🏆", cost:4000000000,mult:3.2}
+    ],
+    stages:[
+      {stage:"Used Car Lot",    emoji:"🛻", tap:220, goal:2000000,  staffCost:900000,  staffRate:11000, desc:"A small lot with a few used cars and trucks."},
+      {stage:"Car Showroom",    emoji:"🏬", tap:750, goal:12000000, staffCost:5000000, staffRate:55000, desc:"A bright showroom with new models on display."},
+      {stage:"Truckres Empire", emoji:"🏢", tap:2400,goal:70000000, staffCost:25000000,staffRate:280000,desc:"A nationwide vehicle empire. The crown of your journey."}
+    ]}
+];
+
+const ACHIEVEMENTS = [
+  {id:"tap100",   ic:"👆", n:"First Steps",      d:"Tap 100 times",              test:s=>s.taps>=100},
+  {id:"tap1000",  ic:"💪", n:"Hard Worker",      d:"Tap 1,000 times",            test:s=>s.taps>=1000},
+  {id:"tap5000",  ic:"🔥", n:"Tap Master",       d:"Tap 5,000 times",            test:s=>s.taps>=5000},
+  {id:"staff1",   ic:"🤖", n:"First Employee",   d:"Hire your first staff",      test:s=>s.staffTotal>=1},
+  {id:"staff25",  ic:"👥", n:"Team Builder",     d:"Hire 25 staff total",        test:s=>s.staffTotal>=25},
+  {id:"mgr1",     ic:"👔", n:"Delegator",        d:"Hire your first manager",    test:s=>s.managers>=1},
+  {id:"prod1",    ic:"🛒", n:"New Product",      d:"Unlock your first product",  test:s=>s.productsOwned>=1},
+  {id:"prod5",    ic:"🎁", n:"Full Menu",        d:"Unlock 5 products",          test:s=>s.productsOwned>=5},
+  {id:"bonus10",  ic:"🎉", n:"Lucky Catcher",    d:"Catch 10 bonus customers",   test:s=>s.bonuses>=10},
+  {id:"bonus50",  ic:"🍀", n:"Fortune Hunter",   d:"Catch 50 bonus customers",   test:s=>s.bonuses>=50},
+  {id:"combo20",  ic:"⚡", n:"Combo King",       d:"Reach a 20x tap combo",      test:s=>s.bestCombo>=20},
+  {id:"biz1",     ic:"🥇", n:"First Empire",     d:"Complete your first business",test:s=>s.completed>=1},
+  {id:"biz2",     ic:"🥈", n:"Two Down",         d:"Complete two businesses",    test:s=>s.completed>=2},
+  {id:"biz3",     ic:"🥉", n:"Almost There",     d:"Complete three businesses",  test:s=>s.completed>=3},
+  {id:"biz4",     ic:"🏆", n:"EMPIRE BUILDER",   d:"Complete all four businesses",test:s=>s.completed>=4},
+  {id:"cash1m",   ic:"💰", n:"Millionaire",      d:"Earn $1M total",             test:s=>s.total>=1e6},
+  {id:"cash1b",   ic:"💎", n:"Billionaire",      d:"Earn $1B total",             test:s=>s.total>=1e9},
+  {id:"daily3",   ic:"📅", n:"Loyal Owner",      d:"Claim 3 daily rewards",      test:s=>s.dailyStreak>=3},
+  {id:"prestige1",ic:"🌟", n:"Reborn",           d:"Prestige once",              test:s=>s.prestige>=1},
+  {id:"mkt5",     ic:"📢", n:"Ad Campaign",      d:"Run 5 marketing campaigns",  test:s=>s.adsRun>=5}
+];
+
+const SAVE_KEY = "dte_save_v3";
+
+/* ---------- MISSIONS (clear goals + rewards) ---------- */
+/* Each mission: id, icon, name, desc, target, reward multiplier of goal, check(current) */
+const MISSIONS = [
+  {id:"m_tap50",  ic:"👆", n:"Warm Up",        d:"Tap the shop 50 times",        t:50,   rw:0.20, val:s=>s.taps},
+  {id:"m_staff3", ic:"🤖", n:"Build a Team",   d:"Hire 3 staff",                 t:3,    rw:0.30, val:s=>s.staff},
+  {id:"m_prod1",  ic:"🛒", n:"New Product",    d:"Unlock a new product",         t:1,    rw:0.40, val:s=>s.productsOwned},
+  {id:"m_bonus3", ic:"🎁", n:"Lucky Day",      d:"Catch 3 bonus customers",      t:3,    rw:0.35, val:s=>s.bonuses},
+  {id:"m_combo10",ic:"⚡", n:"Combo Starter",  d:"Reach a 10x combo",            t:10,   rw:0.30, val:s=>s.bestCombo},
+  {id:"m_mgr1",   ic:"👔", n:"Delegate",       d:"Hire your first manager",      t:1,    rw:0.50, val:s=>s.managers},
+  {id:"m_ads2",   ic:"📢", n:"Advertiser",     d:"Run 2 ad campaigns",           t:2,    rw:0.35, val:s=>s.adsRun},
+  {id:"m_stage1", ic:"⬆️", n:"Growing Up",     d:"Upgrade your shop 1 time",     t:1,    rw:0.60, val:s=>s.stageTotal},
+  {id:"m_biz1",   ic:"🥇", n:"First Empire",   d:"Complete your first business", t:1,    rw:1.00, val:s=>s.completed},
+  {id:"m_cash1m", ic:"💰", n:"Millionaire",    d:"Earn $1M in total",            t:1e6,  rw:0.75, val:s=>s.total}
+];
+
+/* ---------- LEADERBOARD (local rivals + you) ---------- */
+/* Simulated rival tycoons. Their scores grow slowly over real time so the
+   board feels alive; your real score is inserted and ranked live. */
+const RIVALS = [
+  {n:"Rafiq's Tea Co.",  ic:"🍵", base:180000,   rate:2.2},
+  {n:"Lens & Light",     ic:"📷", base:420000,   rate:3.1},
+  {n:"Nova Robotics",    ic:"🤖", base:1500000,  rate:5.4},
+  {n:"Highway Motors",   ic:"🚚", base:3800000,  rate:7.9},
+  {n:"Dhaka Traders",    ic:"🏪", base:95000,    rate:1.4},
+  {n:"Star Bazaar",      ic:"⭐", base:640000,   rate:4.2}
+];
+const LB_KEY = "dte_rivals_v1";
+let RIVAL_STATE = loadRivals();
+function loadRivals(){
+  try{
+    const r=JSON.parse(localStorage.getItem(LB_KEY)||"null");
+    if(r&&r.t) return r;
+  }catch(e){}
+  return {t:Date.now(), s:null};
+}
+function rivalScores(){
+  // anchor the rivals to the time we first started, so they grow over real days
+  const now=Date.now();
+  if(!RIVAL_STATE.s){
+    RIVAL_STATE.s = RIVALS.map(r=>Math.floor(r.base*(0.6+Math.random()*0.8)));
+    RIVAL_STATE.t = now;
+    localStorage.setItem(LB_KEY, JSON.stringify(RIVAL_STATE));
+  }
+  const hours=(now-RIVAL_STATE.t)/3600000;
+  return RIVALS.map((r,i)=>({
+    n:r.n, ic:r.ic,
+    sc: Math.floor(RIVAL_STATE.s[i] + r.rate*r.base*0.0006*hours)
+  }));
+}
+function myScore(){ return Math.floor(S.total + S.completed*250000 + S.prestigePts*500000); }
+function leaderboard(){
+  const rows = rivalScores();
+  rows.push({n:"You (Noor Mohammad Siddiki)", ic:"👑", sc:myScore(), me:true});
+  rows.sort((a,b)=>b.sc-a.sc);
+  return rows;
+}
+
+/* ---------- state ---------- */
+let S = newState();
+function newState(){
+  return {
+    biz:0, stage:0, cash:0, total:0, completed:0,
+    tapLevel:0, staff:0, managers:0, staffTotal:0, adsRun:0,
+    taps:0, bonuses:0, bestCombo:0, combo:0, lastTap:0,
+    products:[0,0,0,0], productsOwned:0,
+    ach:{}, dailyStreak:0, lastDaily:0, prestige:0, prestigePts:0,
+    started:Date.now(), playMs:0, sound:true, autoSaveAt:Date.now(),
+    dayPhase:0, stageTotal:0, missions:{}, lbName:"Noor Mohammad Siddiki"
+  };
+}
+
+/* ---------- dom ---------- */
+const $ = id => document.getElementById(id);
+const sceneEl=$("scene"), shopArt=$("shopArt"), shopName=$("shopName"),
+  shopStage=$("shopStage"), descEl=$("desc"), progFill=$("progFill"),
+  progLabel=$("progLabel"), progPct=$("progPct"), trackerEl=$("tracker"),
+  staffRing=$("staffRing"), glowEl=$("glow"), skyEl=$("sky"), comboEl=$("combo"),
+  upgradeBtn=$("upgradeBtn"), openBtn=$("openBtn"), tapPowerBtn=$("tapPowerBtn"),
+  hireBtn=$("hireBtn"), mktBtn=$("mktBtn"), noteEl=$("note"), toastEl=$("toast"),
+  modal=$("modal"), modalIcon=$("modalIcon"), modalTitle=$("modalTitle"),
+  modalText=$("modalText"), modalBtn=$("modalBtn"), sheet=$("sheet"),
+  sheetBody=$("sheetBody"), sheetTitle=$("sheetTitle"), tabsEl=$("tabs");
+
+/* ---------- helpers ---------- */
+function money(n){
+  n=Math.floor(n);
+  if(n>=1e12) return "$"+(n/1e12).toFixed(2)+"T";
+  if(n>=1e9)  return "$"+(n/1e9).toFixed(2)+"B";
+  if(n>=1e7)  return "$"+(n/1e7).toFixed(2)+"Cr";
+  if(n>=1e5)  return "$"+(n/1e5).toFixed(2)+"L";
+  if(n>=1e3)  return "$"+(n/1e3).toFixed(1)+"K";
+  return "$"+n;
+}
+function num(n){ return Math.floor(n).toLocaleString("en-US"); }
+function biz(){ return BUSINESSES[S.biz]; }
+function stg(){ return biz().stages[S.stage]; }
+function goal(){ return stg().goal; }
+function prodMult(){ return biz().products[S.products[S.biz]].mult; }
+function prestigeMult(){ return 1 + S.prestigePts*0.10; }
+function tapVal(){
+  return Math.floor(stg().tap * Math.pow(1.85,S.tapLevel) * prodMult() * prestigeMult());
+}
+function tapPowerCost(){ return Math.floor(goal()*0.32*Math.pow(1.7,S.tapLevel)); }
+function staffRate(){ return Math.floor(stg().staffRate*S.staff*prodMult()*prestigeMult()); }
+function staffCost(){ return Math.floor(stg().staffCost*Math.pow(1.5,S.staff)); }
+function mgrRate(){ return Math.floor(staffRate()*0.35); }
+function mgrCost(){ return Math.floor(goal()*0.55*Math.pow(2.1,S.managers)); }
+function adCost(){ return Math.floor(goal()*0.22); }
+function isLastStage(){ return S.stage>=biz().stages.length-1; }
+function totalPerSec(){ return staffRate()+mgrRate(); }
+
+/* ---------- save / load ---------- */
+function save(){
+  try{
+    S.autoSaveAt=Date.now();
+    localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+  }catch(e){}
+}
+function load(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw) return false;
+    const d=JSON.parse(raw);
+    if(!d||typeof d!=="object") return false;
+    S=Object.assign(newState(),d);
+    // offline income
+    const away=Math.min((Date.now()-(d.autoSaveAt||Date.now()))/1000, 8*3600);
+    const rate=totalPerSec();
+    if(away>30 && rate>0){
+      const earned=Math.floor(rate*away*0.5);
+      if(earned>0){
+        S.cash+=earned; S.total+=earned;
+        setTimeout(()=>toast("💤 Offline income: +"+money(earned)),700);
+      }
+    }
+    return true;
+  }catch(e){ return false; }
+}
+setInterval(save, 5000);
+window.addEventListener("beforeunload", save);
+document.addEventListener("visibilitychange",()=>{ if(document.hidden) save(); });
+
+/* ---------- sound ---------- */
+let AC=null;
+function beep(freq,dur,type,vol){
+  if(!S.sound) return;
+  try{
+    if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.type=type||"sine"; o.frequency.value=freq;
+    g.gain.value=vol||0.06;
+    o.connect(g); g.connect(AC.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, AC.currentTime+(dur||0.09));
+    o.stop(AC.currentTime+(dur||0.09));
+  }catch(e){}
+}
+const SFX={
+  tap:()=>beep(520+Math.random()*120,0.05,"triangle",0.045),
+  buy:()=>{beep(660,0.09,"sine",0.07); setTimeout(()=>beep(880,0.12,"sine",0.07),80);},
+  up:()=>{beep(523,0.1,"sine",0.08); setTimeout(()=>beep(659,0.1,"sine",0.08),90); setTimeout(()=>beep(784,0.18,"sine",0.08),180);},
+  bonus:()=>{beep(880,0.08,"square",0.05); setTimeout(()=>beep(1175,0.14,"square",0.05),70);},
+  win:()=>{[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.18,"sine",0.08),i*110));},
+  err:()=>beep(180,0.13,"sawtooth",0.05)
+};
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg){
+  toastEl.textContent=msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>toastEl.classList.remove("show"),1700);
+}
+
+/* ---------- stars & clouds ---------- */
+(function buildSky(){
+  const box=$("stars");
+  for(let i=0;i<70;i++){
+    const s=document.createElement("div");
+    s.className="star";
+    s.style.left=Math.random()*100+"%";
+    s.style.top=Math.random()*60+"%";
+    s.style.animationDelay=(Math.random()*3)+"s";
+    s.style.opacity=0.2+Math.random()*0.7;
+    box.appendChild(s);
+  }
+  for(let i=0;i<3;i++){
+    const c=document.createElement("div");
+    c.className="cloud";
+    c.textContent="☁️";
+    c.style.top=(8+i*11)+"%";
+    c.style.animationDuration=(46+i*16)+"s";
+    c.style.animationDelay=(-i*14)+"s";
+    skyEl.appendChild(c);
+  }
+})();
+
+/* ---------- day / night cycle ---------- */
+const PHASES=["day","evening","night","dawn"];
+function applyPhase(){
+  skyEl.className="sky "+PHASES[S.dayPhase%4];
+}
+setInterval(()=>{
+  S.dayPhase=(S.dayPhase+1)%4;
+  applyPhase();
+}, 45000);
+
+/* ---------- CSS/SVG PAINTED SHOP ---------- */
+/* Each business gets a hand-built vector scene that grows with the stage. */
+const SHOP_ART = {
+  tea: { wall:"#7a4a2b", wall2:"#5c3720", roof:"#c0392b", roof2:"#8e2b20",
+         accent:"#f0b429", sign:"TEA", glass:"#ffd970",
+         items:'<circle cx="0" cy="0" r="0"/>' },
+  frame:{ wall:"#2b3a4a", wall2:"#1d2836", roof:"#58a6ff", roof2:"#1f6feb",
+         accent:"#58a6ff", sign:"CAMERA", glass:"#a8d5ff",
+         items:'<circle cx="0" cy="0" r="0"/>' },
+  clio: { wall:"#3a2b4a", wall2:"#281d36", roof:"#a371f7", roof2:"#8957e5",
+         accent:"#a371f7", sign:"CLIO", glass:"#d0b8ff",
+         items:'<circle cx="0" cy="0" r="0"/>' },
+  truckres:{ wall:"#4a2b2b", wall2:"#361d1d", roof:"#ff7b72", roof2:"#da3633",
+         accent:"#ff7b72", sign:"TRUCKS", glass:"#ffc0ba",
+         items:'<circle cx="0" cy="0" r="0"/>' }
+};
+function shopSVG(bk, lvl){
+  const c = SHOP_ART[bk] || SHOP_ART.tea;
+  const id = "g"+bk;
+  // ground shadow
+  let svg = '<svg viewBox="0 0 210 150" xmlns="http://www.w3.org/2000/svg">';
+  svg += '<defs>';
+  svg += '<linearGradient id="'+id+'w" x1="0" y1="0" x2="0" y2="1">'+
+         '<stop offset="0" stop-color="'+c.wall+'"/><stop offset="1" stop-color="'+c.wall2+'"/></linearGradient>';
+  svg += '<linearGradient id="'+id+'r" x1="0" y1="0" x2="0" y2="1">'+
+         '<stop offset="0" stop-color="'+c.roof+'"/><stop offset="1" stop-color="'+c.roof2+'"/></linearGradient>';
+  svg += '<linearGradient id="'+id+'g" x1="0" y1="0" x2="0" y2="1">'+
+         '<stop offset="0" stop-color="'+c.glass+'" stop-opacity=".95"/>'+
+         '<stop offset="1" stop-color="'+c.glass+'" stop-opacity=".45"/></linearGradient>';
+  svg += '</defs>';
+  svg += '<ellipse cx="105" cy="143" rx="82" ry="9" fill="rgba(0,0,0,.45)"/>';
+
+  // ---- LEVEL 1 : small stall (always visible) ----
+  svg += '<g class="sa-part sa-l1">';
+  // counter
+  svg += '<rect x="52" y="98" width="106" height="34" rx="5" fill="url(#'+id+'w)"/>';
+  svg += '<rect x="52" y="98" width="106" height="7" rx="3" fill="'+c.accent+'" opacity=".85"/>';
+  // posts
+  svg += '<rect x="56" y="44" width="6" height="58" rx="3" fill="'+c.wall2+'"/>';
+  svg += '<rect x="148" y="44" width="6" height="58" rx="3" fill="'+c.wall2+'"/>';
+  // awning / roof
+  svg += '<path d="M44 50 L105 24 L166 50 Z" fill="url(#'+id+'r)"/>';
+  svg += '<rect x="44" y="46" width="122" height="9" rx="4" fill="'+c.roof2+'"/>';
+  // stripes on awning
+  for(let i=0;i<5;i++){
+    svg += '<rect x="'+(56+i*22)+'" y="30" width="8" height="18" fill="#fff" opacity=".18" transform="rotate('+
+      (i<2?-24:(i>2?24:0))+', '+(56+i*22)+', 40)"/>';
+  }
+  // hanging sign
+  svg += '<rect x="80" y="56" width="50" height="20" rx="5" fill="#0d1117" stroke="'+c.accent+'" stroke-width="1.6"/>';
+  svg += '<text class="sa-sign" x="105" y="70" font-size="10" text-anchor="middle" fill="'+c.accent+'">'+c.sign+'</text>';
+  // steam / kettle
+  svg += '<g class="sa-smoke"><ellipse cx="86" cy="92" rx="7" ry="4" fill="#fff" opacity=".35"/>'+
+         '<ellipse cx="86" cy="84" rx="5" ry="3" fill="#fff" opacity=".25"/></g>';
+  svg += '<rect x="80" y="90" width="16" height="10" rx="3" fill="#c9d1d9"/>';
+  svg += '<rect x="96" y="92" width="7" height="3" rx="1.5" fill="#c9d1d9"/>';
+  // cups on counter
+  svg += '<rect x="120" y="92" width="7" height="8" rx="2" fill="#fff" opacity=".9"/>';
+  svg += '<rect x="130" y="92" width="7" height="8" rx="2" fill="#fff" opacity=".9"/>';
+  svg += '</g>';
+
+  // ---- LEVEL 2 : proper shop (glass windows + door) ----
+  svg += '<g class="sa-part sa-l2">';
+  svg += '<rect x="40" y="52" width="130" height="80" rx="6" fill="url(#'+id+'w)"/>';
+  svg += '<rect x="40" y="52" width="130" height="80" rx="6" fill="none" stroke="'+c.accent+'" stroke-width="2"/>';
+  // windows
+  svg += '<rect x="50" y="66" width="40" height="40" rx="4" fill="url(#'+id+'g)" stroke="'+c.accent+'" stroke-width="1.4"/>';
+  svg += '<rect x="120" y="66" width="40" height="40" rx="4" fill="url(#'+id+'g)" stroke="'+c.accent+'" stroke-width="1.4"/>';
+  // door
+  svg += '<rect x="96" y="76" width="28" height="56" rx="4" fill="#0d1117" stroke="'+c.accent+'" stroke-width="1.6"/>';
+  svg += '<circle cx="118" cy="106" r="2.2" fill="'+c.accent+'"/>';
+  // big neon sign
+  svg += '<rect class="sa-neon" x="66" y="30" width="78" height="24" rx="7" fill="#0d1117" stroke="'+c.accent+'" stroke-width="2"/>';
+  svg += '<text class="sa-sign sa-neon" x="105" y="47" font-size="13" text-anchor="middle" fill="'+c.accent+'">'+c.sign+'</text>';
+  // roof band
+  svg += '<rect x="36" y="52" width="138" height="8" rx="4" fill="url(#'+id+'r)"/>';
+  svg += '</g>';
+
+  // ---- LEVEL 3 : big professional building ----
+  svg += '<g class="sa-part sa-l3">';
+  svg += '<rect x="30" y="40" width="150" height="96" rx="7" fill="url(#'+id+'w)"/>';
+  svg += '<rect x="30" y="40" width="150" height="96" rx="7" fill="none" stroke="'+c.accent+'" stroke-width="2.4"/>';
+  // upper floor windows
+  for(let i=0;i<4;i++){
+    svg += '<rect class="sa-blink" x="'+(40+i*36)+'" y="50" width="22" height="18" rx="3" fill="url(#'+id+'g)" '+
+      'stroke="'+c.accent+'" stroke-width="1.2" style="animation-delay:'+(i*0.4)+'s"/>';
+  }
+  // lower floor
+  svg += '<rect x="40" y="78" width="52" height="52" rx="4" fill="url(#'+id+'g)" stroke="'+c.accent+'" stroke-width="1.4"/>';
+  svg += '<rect x="118" y="78" width="52" height="52" rx="4" fill="url(#'+id+'g)" stroke="'+c.accent+'" stroke-width="1.4"/>';
+  svg += '<rect x="96" y="82" width="26" height="48" rx="4" fill="#0d1117" stroke="'+c.accent+'" stroke-width="1.6"/>';
+  svg += '<circle cx="117" cy="108" r="2.2" fill="'+c.accent+'"/>';
+  // grand sign
+  svg += '<rect class="sa-neon" x="54" y="18" width="102" height="26" rx="8" fill="#0d1117" stroke="'+c.accent+'" stroke-width="2.4"/>';
+  svg += '<text class="sa-sign sa-neon" x="105" y="37" font-size="15" text-anchor="middle" fill="'+c.accent+'">'+c.sign+'</text>';
+  // flag / antenna
+  svg += '<rect x="103" y="2" width="3" height="18" fill="'+c.accent+'"/>';
+  svg += '<path d="M106 4 L124 9 L106 14 Z" fill="'+c.accent+'"/>';
+  svg += '</g>';
+
+  svg += '</svg>';
+  return svg;
+}
+function paintShop(){
+  shopArt.dataset.lvl = S.stage+1;
+  shopArt.dataset.biz = S.biz;
+  shopArt.innerHTML = shopSVG(biz().key, S.stage+1);
+}
+
+/* ---------- render ---------- */
+function render(){
+  const b=biz(), s=stg();
+
+  paintShop();
+  shopName.textContent=b.name;
+  shopName.style.color=b.theme;
+  shopStage.textContent="Stage "+(S.stage+1)+" · "+s.stage;
+  shopStage.style.color=b.theme;
+  descEl.textContent=s.desc;
+  glowEl.style.background="radial-gradient(circle,"+b.glow+" 0%,transparent 70%)";
+
+  $("cash").textContent=money(S.cash);
+  $("perSec").textContent=money(totalPerSec())+"/s";
+  $("tapShow").textContent=money(tapVal());
+  $("empire").textContent=S.completed+"/4";
+
+  const pct=Math.min(100,(S.cash/goal())*100);
+  progFill.style.width=pct+"%";
+  progPct.textContent=Math.floor(pct)+"%";
+  progLabel.textContent="Goal "+money(goal())+" · Product "+b.products[S.products[S.biz]].n;
+
+  trackerEl.innerHTML="";
+  BUSINESSES.forEach((bb,i)=>{
+    const d=document.createElement("div");
+    d.className="dot";
+    if(i<S.biz) d.classList.add("done");
+    if(i===S.biz) d.classList.add("active");
+    d.textContent=bb.icon;
+    trackerEl.appendChild(d);
+  });
+
+  staffRing.innerHTML="";
+  const shown=Math.min(S.staff,6);
+  for(let i=0;i<shown;i++){
+    const el=document.createElement("div");
+    el.className="staff";
+    el.textContent="🧑‍🍳";
+    el.style.animationDuration=(6+i*0.7)+"s";
+    el.style.animationDelay=(-i*1.1)+"s";
+    staffRing.appendChild(el);
+  }
+
+  const canUp=S.cash>=goal();
+  if(!isLastStage()){
+    upgradeBtn.style.display="block"; openBtn.style.display="none";
+    upgradeBtn.disabled=!canUp;
+    upgradeBtn.innerHTML=canUp
+      ? "⬆ UPGRADE TO "+b.stages[S.stage+1].stage.toUpperCase()+"<small>Cost "+money(goal())+"</small>"
+      : "UPGRADE SHOP<small>Need "+money(goal()-S.cash)+" more</small>";
+  }else{
+    upgradeBtn.style.display="none"; openBtn.style.display="block";
+    const nxt=BUSINESSES[S.biz+1];
+    openBtn.disabled=!canUp;
+    openBtn.innerHTML=nxt
+      ? "🚀 OPEN "+nxt.name.toUpperCase()+"<small>Investment "+money(goal())+"</small>"
+      : "🏆 COMPLETE THE EMPIRE";
+  }
+
+  const pc=tapPowerCost();
+  tapPowerBtn.disabled=S.cash<pc;
+  tapPowerBtn.innerHTML="⚡ TAP LV"+(S.tapLevel+1)+"<small>"+money(tapVal())+" · "+money(pc)+"</small>";
+
+  const sc=staffCost();
+  hireBtn.disabled=S.cash<sc;
+  hireBtn.innerHTML="🤖 STAFF ("+S.staff+")<small>+"+money(stg().staffRate)+"/s · "+money(sc)+"</small>";
+
+  const ac=adCost();
+  mktBtn.disabled=S.cash<ac;
+  mktBtn.innerHTML="📢 ADS<small>2x for 15s · "+money(ac)+"</small>";
+
+  if(!canUp&&isLastStage()) noteEl.innerHTML="Keep earning — <b>"+money(goal()-S.cash)+"</b> more to unlock the next business.";
+  else if(!canUp) noteEl.innerHTML="Tap the shop, hire staff, buy products or run ads to grow faster.";
+  else noteEl.innerHTML="<b>You have enough cash to grow!</b>";
+}
+
+/* ---------- float text ---------- */
+function floatText(txt,cx,cy,color){
+  const f=document.createElement("div");
+  f.className="float"; f.textContent=txt; f.style.color=color||"#7ee787";
+  const r=sceneEl.getBoundingClientRect();
+  const x=(cx||r.left+r.width/2)-r.left, y=(cy||r.top+r.height/2)-r.top;
+  f.style.left=(x-22)+"px"; f.style.top=(y-12)+"px";
+  sceneEl.appendChild(f);
+  setTimeout(()=>f.remove(),1100);
+}
+function coinBurst(cx,cy){
+  for(let i=0;i<5;i++){
+    const c=document.createElement("div");
+    c.className="coin"; c.textContent="🪙";
+    const r=sceneEl.getBoundingClientRect();
+    c.style.left=((cx||r.left+r.width/2)-r.left+(Math.random()*50-25))+"px";
+    c.style.top=((cy||r.top+r.height/2)-r.top+(Math.random()*20-10))+"px";
+    c.style.animationDelay=(i*0.05)+"s";
+    sceneEl.appendChild(c);
+    setTimeout(()=>c.remove(),1100);
+  }
+}
+function walkCustomer(){
+  const c=document.createElement("div");
+  c.className="cust";
+  c.textContent=["🧍","🚶","🧑","👩","👨"][Math.floor(Math.random()*5)];
+  c.style.left="-30px";
+  const dur=4+Math.random()*3;
+  c.style.animationDuration=dur+"s";
+  sceneEl.appendChild(c);
+  setTimeout(()=>c.remove(),(dur+0.5)*1000);
+}
+setInterval(()=>{ if(Math.random()<0.6) walkCustomer(); }, 4200);
+
+/* ---------- tap ---------- */
+shopArt.addEventListener("pointerdown", e=>{
+  const now=Date.now();
+  if(now-S.lastTap<650) S.combo++;
+  else S.combo=1;
+  S.lastTap=now;
+  if(S.combo>S.bestCombo) S.bestCombo=S.combo;
+
+  const comboBonus=1+Math.min(S.combo,25)*0.04;
+  const gain=Math.floor(tapVal()*comboBonus);
+
+  S.cash+=gain; S.total+=gain; S.taps++;
+  SFX.tap();
+
+  shopArt.classList.remove("pop"); void shopArt.offsetWidth; shopArt.classList.add("pop");
+  floatText("+"+money(gain),e.clientX,e.clientY,"#7ee787");
+  if(Math.random()<0.25) coinBurst(e.clientX,e.clientY);
+
+  if(S.combo>=5){
+    comboEl.textContent="⚡ "+S.combo+"x COMBO";
+    comboEl.classList.add("on");
+  }
+  clearTimeout(window.__comboT);
+  window.__comboT=setTimeout(()=>{ S.combo=0; comboEl.classList.remove("on"); },900);
+
+  checkAchievements(); checkMissions(); render();
+});
+
+/* ---------- buy actions ---------- */
+tapPowerBtn.addEventListener("click",()=>{
+  const pc=tapPowerCost();
+  if(S.cash<pc){ SFX.err(); return; }
+  S.cash-=pc; S.tapLevel++; SFX.buy();
+  toast("⚡ Tap Power up! Now "+money(tapVal())+"/tap");
+  render();
+});
+hireBtn.addEventListener("click",()=>{
+  const sc=staffCost();
+  if(S.cash<sc){ SFX.err(); return; }
+  S.cash-=sc; S.staff++; S.staffTotal++; SFX.buy();
+  toast("🤖 Staff hired! +"+money(stg().staffRate)+"/s");
+  checkAchievements(); render();
+});
+mktBtn.addEventListener("click",()=>{
+  const ac=adCost();
+  if(S.cash<ac){ SFX.err(); return; }
+  S.cash-=ac; S.adsRun++; SFX.buy();
+  AD_BOOST=2; AD_UNTIL=Date.now()+15000;
+  toast("📢 Ad campaign! 2x income for 15s");
+  checkAchievements(); render();
+});
+let AD_BOOST=1, AD_UNTIL=0;
+function adMult(){ return Date.now()<AD_UNTIL?AD_BOOST:1; }
+
+/* ---------- upgrade ---------- */
+upgradeBtn.addEventListener("click",()=>{
+  if(S.cash<goal()||isLastStage()){ SFX.err(); return; }
+  S.cash-=goal(); S.stage++; S.stageTotal++; S.staff=0; S.tapLevel=0; S.managers=0;
+  SFX.up(); confetti();
+  render();
+  const s=stg();
+  showModal(s.emoji,"Stage Up!","Your business grew into a <b>"+s.stage+"</b>.<br><br>"+s.desc,"KEEP GROWING");
+});
+
+/* ---------- open next business ---------- */
+openBtn.addEventListener("click",()=>{
+  if(!isLastStage()||S.cash<goal()){ SFX.err(); return; }
+  S.cash-=goal(); S.completed++;
+  const nxt=BUSINESSES[S.biz+1];
+  if(nxt){
+    const oldName=biz().name;
+    S.biz++; S.stage=0; S.staff=0; S.tapLevel=0; S.managers=0;
+    SFX.win(); confetti();
+    render();
+    showModal(nxt.icon,"New Business Unlocked!",
+      "<b>"+oldName+"</b> is now fully professional.<br><br>You are opening <b>"+nxt.name+"</b> — starting small, dreaming big.","LET'S GO");
+  }else{
+    SFX.win(); confetti(); setTimeout(confetti,400);
+    render();
+    showModal("🏆","DREAM TO EMPIRE — COMPLETE!",
+      "All four businesses are professional.<br><br>🍵 Tea · 📷 Camera · 🤖 Robots · 🚚 Vehicles<br><br>You built an empire from a single dream.<br><br><b>Prestige is now available in the menu.</b>","AWESOME");
+  }
+  checkAchievements();
+});
+
+/* ---------- modal ---------- */
+function showModal(icon,title,text,btn){
+  modalIcon.textContent=icon; modalTitle.textContent=title;
+  modalText.innerHTML=text; modalBtn.textContent=btn;
+  modal.classList.add("show");
+}
+modalBtn.addEventListener("click",()=>modal.classList.remove("show"));
+
+/* ---------- confetti ---------- */
+function confetti(){
+  const colors=["#f0b429","#3fb950","#58a6ff","#a371f7","#ff7b72","#ffffff"];
+  for(let i=0;i<46;i++){
+    const c=document.createElement("div");
+    c.className="confetti";
+    c.style.left=Math.random()*100+"%";
+    c.style.background=colors[Math.floor(Math.random()*colors.length)];
+    c.style.animationDuration=(1.7+Math.random()*1.5)+"s";
+    c.style.animationDelay=(Math.random()*0.45)+"s";
+    $("app").appendChild(c);
+    setTimeout(()=>c.remove(),3800);
+  }
+}
+
+/* ---------- bonus customer ---------- */
+function spawnBonus(){
+  if(document.querySelector(".bonus")) return;
+  const b=document.createElement("div");
+  b.className="bonus"; b.textContent="🎁";
+  b.style.left=(12+Math.random()*70)+"%";
+  b.style.top=(18+Math.random()*40)+"%";
+  sceneEl.appendChild(b);
+  const life=setTimeout(()=>b.remove(),6000);
+  b.addEventListener("pointerdown",e=>{
+    clearTimeout(life);
+    const reward=Math.max(tapVal()*25,Math.floor(goal()*0.06));
+    S.cash+=reward; S.total+=reward; S.bonuses++;
+    SFX.bonus();
+    floatText("+"+money(reward)+" 🎁",e.clientX,e.clientY,"#f0b429");
+    coinBurst(e.clientX,e.clientY);
+    b.remove();
+    toast("🎁 Bonus customer! +"+money(reward));
+    checkAchievements(); render();
+  });
+}
+setInterval(()=>{ if(Math.random()<0.55) spawnBonus(); }, 9000);
+
+/* ---------- idle tick ---------- */
+setInterval(()=>{
+  const r=Math.floor(totalPerSec()*adMult());
+  if(r>0){ S.cash+=r; S.total+=r; render(); }
+  checkMissions();
+},1000);
+
+/* ---------- achievements ---------- */
+function checkAchievements(){
+  let got=false;
+  ACHIEVEMENTS.forEach(a=>{
+    if(!S.ach[a.id] && a.test(S)){
+      S.ach[a.id]=1; got=true;
+      toast("🏆 "+a.n+" unlocked!");
+      SFX.bonus();
+    }
+  });
+  if(got) save();
+}
+
+/* ---------- missions ---------- */
+function missionProgress(m){ return Math.min(m.t, m.val(S)||0); }
+function missionDone(m){ return missionProgress(m) >= m.t; }
+function missionReward(m){ return Math.floor(Math.max(goal()*m.rw, tapVal()*40)); }
+function checkMissions(){
+  let changed=false;
+  MISSIONS.forEach(m=>{
+    if(!S.missions[m.id] && missionDone(m)){
+      // auto-complete + reward
+      S.missions[m.id]=1; changed=true;
+      const rw=missionReward(m);
+      S.cash+=rw; S.total+=rw;
+      toast("🎯 Mission done: "+m.n+"  +"+money(rw));
+      SFX.win();
+    }
+  });
+  if(changed){ save(); }
+}
+function claimMission(id){
+  const m=MISSIONS.find(x=>x.id===id);
+  if(!m||S.missions[id]) return;
+  if(!missionDone(m)){ SFX.err(); toast("🎯 Not finished yet"); return; }
+  S.missions[id]=1;
+  const rw=missionReward(m);
+  S.cash+=rw; S.total+=rw;
+  SFX.win(); confetti();
+  showModal("🎯","Mission Complete!","<b>"+m.n+"</b><br><br>"+m.d+"<br><br>Reward: <b>"+money(rw)+"</b>","COLLECT");
+  render(); save();
+}
+
+/* ---------- daily reward ---------- */
+function dailyReady(){
+  const today=new Date().toDateString();
+  return S.lastDaily!==today;
+}
+function claimDaily(){
+  if(!dailyReady()){ toast("📅 Already claimed today"); return; }
+  const today=new Date().toDateString();
+  const yest=new Date(Date.now()-86400000).toDateString();
+  S.dailyStreak = (S.lastDaily===yest)? S.dailyStreak+1 : 1;
+  S.lastDaily=today;
+  const base=Math.max(goal()*0.4, tapVal()*200);
+  const reward=Math.floor(base*(1+ (S.dailyStreak-1)*0.35));
+  S.cash+=reward; S.total+=reward;
+  SFX.win(); confetti();
+  showModal("🎁","Daily Reward!",
+    "Day <b>"+S.dailyStreak+"</b> streak!<br><br>You received <b>"+money(reward)+"</b>.<br><br>Come back tomorrow for even more.",
+    "COLLECT");
+  checkAchievements(); render(); save();
+}
+
+/* ================= SHEET ================= */
+let activeTab="upgrades";
+$("menuBtn").addEventListener("click",()=>{ openSheet("upgrades"); });
+$("sheetClose").addEventListener("click",()=>sheet.classList.remove("show"));
+sheet.addEventListener("click",e=>{ if(e.target===sheet) sheet.classList.remove("show"); });
+tabsEl.addEventListener("click",e=>{
+  const t=e.target.closest(".tab"); if(!t) return;
+  [...tabsEl.children].forEach(x=>x.classList.remove("on"));
+  t.classList.add("on");
+  activeTab=t.dataset.tab;
+  renderSheet();
+});
+function openSheet(tab){
+  activeTab=tab||"upgrades";
+  [...tabsEl.children].forEach(x=>x.classList.toggle("on",x.dataset.tab===activeTab));
+  renderSheet();
+  sheet.classList.add("show");
+}
+
+function renderSheet(){
+  const b=biz();
+  if(activeTab==="upgrades"){
+    sheetTitle.textContent="UPGRADES";
+    sheetBody.innerHTML="";
+    const list=document.createElement("div"); list.className="list";
+
+    list.appendChild(item("⚡","Tap Power — Lv "+S.tapLevel,
+      "Each tap earns "+money(tapVal())+". Next level multiplies it.",
+      "BUY "+money(tapPowerCost()), S.cash>=tapPowerCost(), "purple", ()=>{ tapPowerBtn.click(); renderSheet(); }));
+
+    list.appendChild(item("🤖","Staff — "+S.staff+" hired",
+      "Passive income: +"+money(stg().staffRate)+"/s each.",
+      "HIRE "+money(staffCost()), S.cash>=staffCost(), "", ()=>{ hireBtn.click(); renderSheet(); }));
+
+    list.appendChild(item("👔","Manager — "+S.managers+" hired",
+      "Managers add +35% of your staff income.",
+      "HIRE "+money(mgrCost()), S.cash>=mgrCost(), "gold", ()=>{
+        S.cash-=mgrCost(); S.managers++; SFX.buy();
+        toast("👔 Manager hired! +"+money(mgrRate())+"/s");
+        checkAchievements(); render(); renderSheet();
+      }));
+
+    list.appendChild(item("📢","Marketing Campaign",
+      "Double all income for 15 seconds.",
+      "RUN "+money(adCost()), S.cash>=adCost(), "blue", ()=>{ mktBtn.click(); renderSheet(); }));
+
+    list.appendChild(item("🏢","Branch Office",
+      "Open a second branch — permanent +25% to all income.",
+      "OPEN "+money(goal()*1.5), S.cash>=goal()*1.5, "purple", ()=>{
+        S.cash-=goal()*1.5; S.branches=(S.branches||0)+1; S.prestigePts+=0.25; SFX.win();
+        toast("🏢 Branch opened! +25% permanent income");
+        render(); renderSheet();
+      }));
+
+    sheetBody.appendChild(list);
+  }
+
+  else if(activeTab==="products"){
+    sheetTitle.textContent=b.name.toUpperCase()+" — PRODUCTS";
+    sheetBody.innerHTML="";
+    const list=document.createElement("div"); list.className="list";
+    b.products.forEach((p,i)=>{
+      const owned=S.products[S.biz]>=i;
+      const active=S.products[S.biz]===i;
+      const el=document.createElement("div"); el.className="item";
+      el.innerHTML=
+        '<div class="ic">'+p.e+'</div>'+
+        '<div class="tx"><div class="n">'+p.n+(active?' ✅':'')+'</div>'+
+        '<div class="d">'+(p.cost===0?"Included from the start":"Multiplies all income by "+p.mult+"x")+'</div></div>';
+      const act=document.createElement("div"); act.className="act";
+      const btn=document.createElement("button");
+      btn.className="mini"+(owned?" blue":"");
+      if(owned){ btn.textContent=active?"ACTIVE":"OWNED"; btn.disabled=true; }
+      else{
+        btn.innerHTML="BUY<small>"+money(p.cost)+"</small>";
+        btn.disabled=S.cash<p.cost;
+        btn.onclick=()=>{
+          if(S.cash<p.cost) return;
+          S.cash-=p.cost; S.products[S.biz]=i; S.productsOwned++;
+          SFX.buy(); toast("🛒 "+p.n+" unlocked! Income x"+p.mult);
+          checkAchievements(); render(); renderSheet();
+        };
+      }
+      act.appendChild(btn); el.appendChild(act);
+      list.appendChild(el);
+    });
+    sheetBody.appendChild(list);
+  }
+
+  else if(activeTab==="missions"){
+    sheetTitle.textContent="MISSIONS";
+    const done=MISSIONS.filter(m=>S.missions[m.id]).length;
+    sheetBody.innerHTML='<div class="note" style="margin-bottom:10px;">'+done+" / "+MISSIONS.length+
+      " completed · finish a mission and the reward is added automatically</div>";
+    const list=document.createElement("div"); list.className="list";
+    MISSIONS.forEach(m=>{
+      const p=missionProgress(m), pct=Math.min(100,(p/m.t)*100);
+      const fin=missionDone(m), claimed=!!S.missions[m.id];
+      const el=document.createElement("div");
+      el.className="msn"+(claimed?" done":"");
+      el.innerHTML=
+        '<div class="top"><div class="ic">'+(claimed?"✅":m.ic)+'</div>'+
+        '<div class="tx"><div class="n">'+m.n+'</div><div class="d">'+m.d+'</div>'+
+        '<div class="rw">Reward: '+money(missionReward(m))+'</div></div></div>'+
+        '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
+        '<div class="d" style="margin-top:5px">'+num(p)+' / '+num(m.t)+'</div>';
+      if(!claimed && fin){
+        const btn=document.createElement("button");
+        btn.className="mini gold"; btn.textContent="CLAIM REWARD";
+        btn.onclick=()=>{ claimMission(m.id); renderSheet(); };
+        el.appendChild(btn);
+      }
+      list.appendChild(el);
+    });
+    sheetBody.appendChild(list);
+  }
+
+  else if(activeTab==="leaderboard"){
+    sheetTitle.textContent="LEADERBOARD";
+    const rows=leaderboard();
+    const myRank=rows.findIndex(r=>r.me)+1;
+    sheetBody.innerHTML='<div class="note" style="margin-bottom:10px;">Your rank: <b>#'+myRank+
+      '</b> of '+rows.length+' · score = total earned + empire bonus</div>';
+    const list=document.createElement("div"); list.className="list";
+    rows.forEach((r,i)=>{
+      const el=document.createElement("div");
+      el.className="lbrow"+(r.me?" me":"");
+      const rkCls = i===0?"g1":i===1?"g2":i===2?"g3":"";
+      el.innerHTML='<div class="rk '+rkCls+'">'+(i+1)+'</div>'+
+        '<div class="nm">'+r.ic+' '+r.n+(r.me?'<small>that\'s you</small>':'')+'</div>'+
+        '<div class="sc">'+money(r.sc)+'</div>';
+      list.appendChild(el);
+    });
+    sheetBody.appendChild(list);
+
+    const share=document.createElement("button");
+    share.className="btn btn-gold btn-wide";
+    share.style.marginTop="10px";
+    share.textContent="📤 SHARE MY RANK";
+    share.onclick=()=>{
+      const txt="🌐 Dream To Empire — Leaderboard\n👑 I'm ranked #"+myRank+" of "+rows.length+
+        "\n💰 My score: "+money(myScore())+"\n🏢 Businesses: "+S.completed+"/4"+
+        "\n\nCan you beat me? 🎮\nby Noor Mohammad Siddiki";
+      navigator.clipboard?.writeText(txt).then(()=>toast("📋 Copied! Paste it anywhere"),
+        ()=>toast("Copy failed"));
+    };
+    sheetBody.appendChild(share);
+  }
+
+  else if(activeTab==="achievements"){
+    sheetTitle.textContent="ACHIEVEMENTS";
+    const got=ACHIEVEMENTS.filter(a=>S.ach[a.id]).length;
+    sheetBody.innerHTML='<div class="note" style="margin-bottom:10px;">'+got+" / "+ACHIEVEMENTS.length+" unlocked</div>";
+    const list=document.createElement("div"); list.className="list";
+    ACHIEVEMENTS.forEach(a=>{
+      const el=document.createElement("div");
+      el.className="ach"+(S.ach[a.id]?" got":"");
+      el.innerHTML='<div class="ic">'+(S.ach[a.id]?a.ic:"🔒")+'</div>'+
+        '<div><div class="n">'+a.n+'</div><div class="d">'+a.d+'</div></div>';
+      list.appendChild(el);
+    });
+    sheetBody.appendChild(list);
+  }
+
+  else if(activeTab==="stats"){
+    sheetTitle.textContent="STATISTICS";
+    const mins=Math.floor(S.playMs/60000);
+    const grid=document.createElement("div"); grid.className="statgrid";
+    const rows=[
+      ["Total Earned", money(S.total)],
+      ["Current Cash", money(S.cash)],
+      ["Income / Sec", money(totalPerSec())],
+      ["Per Tap", money(tapVal())],
+      ["Total Taps", num(S.taps)],
+      ["Best Combo", S.bestCombo+"x"],
+      ["Bonuses Caught", num(S.bonuses)],
+      ["Ads Run", num(S.adsRun)],
+      ["Staff Hired", num(S.staffTotal)],
+      ["Managers", num(S.managers)],
+      ["Products Owned", num(S.productsOwned)],
+      ["Missions Done", MISSIONS.filter(m=>S.missions[m.id]).length+" / "+MISSIONS.length],
+      ["Leaderboard Rank", "#"+(leaderboard().findIndex(r=>r.me)+1)],
+      ["Businesses Done", S.completed+" / 4"],
+      ["Daily Streak", S.dailyStreak+" days"],
+      ["Prestige Level", num(S.prestige)],
+      ["Prestige Points", (S.prestigePts||0).toFixed(2)],
+      ["Play Time", mins+" min"]
+    ];
+    rows.forEach(r=>{
+      const d=document.createElement("div"); d.className="statbox";
+      d.innerHTML='<div class="k">'+r[0]+'</div><div class="v">'+r[1]+'</div>';
+      grid.appendChild(d);
+    });
+    sheetBody.appendChild(grid);
+  }
+
+  else if(activeTab==="settings"){
+    sheetTitle.textContent="SETTINGS";
+    sheetBody.innerHTML="";
+    const list=document.createElement("div"); list.className="list";
+
+    list.appendChild(item("💾","Save Game","Your progress saves automatically every 5 seconds.","SAVE NOW",true,"blue",()=>{
+      save(); toast("💾 Game saved!");
+    }));
+
+    list.appendChild(item("📲","Install App","Add Dream To Empire to your home screen and play offline.","INSTALL",true,"gold",()=>{
+      tryInstall();
+    }));
+
+    list.appendChild(item("📤","Share Progress","Copy a summary you can share with friends.","SHARE",true,"",()=>{
+      const txt="🎮 Dream To Empire\n💰 Total: "+money(S.total)+
+        "\n🏢 Businesses: "+S.completed+"/4\n⚡ Taps: "+num(S.taps)+
+        "\n🏆 Achievements: "+ACHIEVEMENTS.filter(a=>S.ach[a.id]).length+"/"+ACHIEVEMENTS.length+
+        "\n\nby Noor Mohammad Siddiki";
+      navigator.clipboard?.writeText(txt).then(()=>toast("📋 Copied to clipboard!"),()=>toast("Copy failed"));
+    }));
+
+    list.appendChild(item("🌟","Prestige","Restart from the beginning but keep permanent bonus points. Available after completing all 4 businesses.",
+      S.completed>=4?"PRESTIGE":"LOCKED", S.completed>=4, "gold", ()=>{
+        if(S.completed<4) return;
+        const pts=Math.floor(10+S.total/1e6);
+        S.prestige++; S.prestigePts+=pts;
+        const keep={prestige:S.prestige, prestigePts:S.prestigePts, ach:S.ach, sound:S.sound,
+          dailyStreak:S.dailyStreak, lastDaily:S.lastDaily, taps:S.taps, bonuses:S.bonuses,
+          bestCombo:S.bestCombo, staffTotal:S.staffTotal, productsOwned:S.productsOwned,
+          adsRun:S.adsRun, started:S.started};
+        S=Object.assign(newState(),keep);
+        SFX.win(); confetti();
+        showModal("🌟","PRESTIGE!","You earned <b>"+pts+" prestige points</b>.<br><br>All future income is <b>+"+Math.round(S.prestigePts*10)+"%</b> permanently.","START OVER");
+        sheet.classList.remove("show");
+        render(); save();
+      }));
+
+    list.appendChild(item("🎵","Sound Effects",S.sound?"Sound is ON":"Sound is OFF","TOGGLE",true,"purple",()=>{
+      S.sound=!S.sound; $("soundBtn").textContent=S.sound?"🔊":"🔇";
+      toast(S.sound?"🔊 Sound on":"🔇 Sound off");
+      renderSheet(); save();
+    }));
+
+    list.appendChild(item("🔄","Reset Game","Delete all progress and start completely fresh.","RESET",true,"red",()=>{
+      if(confirm("Reset all progress? This cannot be undone.")){
+        localStorage.removeItem(SAVE_KEY);
+        S=newState(); render(); sheet.classList.remove("show");
+        toast("🔄 Game reset");
+      }
+    }));
+
+    list.appendChild(item("📅","Daily Reward",dailyReady()?"Available now!":"Come back tomorrow",
+      "Streak: "+S.dailyStreak+" day(s)","CLAIM",dailyReady(),"gold",()=>{
+        claimDaily(); sheet.classList.remove("show");
+      }));
+
+    sheetBody.appendChild(list);
+  }
+}
+
+function item(ic,n,d,btnLabel,enabled,cls,onClick){
+  const el=document.createElement("div"); el.className="item";
+  el.innerHTML='<div class="ic">'+ic+'</div><div class="tx"><div class="n">'+n+
+    '</div><div class="d">'+d+'</div></div>';
+  const act=document.createElement("div"); act.className="act";
+  const btn=document.createElement("button");
+  btn.className="mini "+(cls||"");
+  btn.textContent=btnLabel;
+  btn.disabled=!enabled;
+  btn.onclick=onClick;
+  act.appendChild(btn); el.appendChild(act);
+  return el;
+}
+
+/* ---------- sound toggle ---------- */
+$("soundBtn").addEventListener("click",()=>{
+  S.sound=!S.sound;
+  $("soundBtn").textContent=S.sound?"🔊":"🔇";
+  toast(S.sound?"🔊 Sound on":"🔇 Sound off");
+  save();
+});
+
+/* ---------- PWA manifest (inline) + install ---------- */
+let deferredPrompt=null;
+(function pwa(){
+  const manifest={
+    name:"Dream To Empire",
+    short_name:"DTE",
+    description:"Build four businesses from a single dream. By Noor Mohammad Siddiki.",
+    start_url:"./dream_to_empire_v4.html",
+    scope:"./",
+    display:"standalone",
+    orientation:"portrait",
+    background_color:"#05070d",
+    theme_color:"#05070d",
+    icons:[
+      {src:"data:image/svg+xml,"+encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">'+
+        '<rect width="512" height="512" rx="96" fill="#0d1117"/>'+
+        '<text x="256" y="300" font-size="240" text-anchor="middle">🏆</text></svg>'),
+       sizes:"512x512", type:"image/svg+xml", purpose:"any"},
+      {src:"data:image/svg+xml,"+encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192">'+
+        '<rect width="192" height="192" rx="36" fill="#0d1117"/>'+
+        '<text x="96" y="128" font-size="110" text-anchor="middle">🏆</text></svg>'),
+       sizes:"192x192", type:"image/svg+xml", purpose:"maskable"}
+    ]
+  };
+  const blob=new Blob([JSON.stringify(manifest)],{type:"application/json"});
+  document.getElementById("manifestLink").href=URL.createObjectURL(blob);
+})();
+
+window.addEventListener("beforeinstallprompt", e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  if(!localStorage.getItem("dte_install_hide")) $("installBar").classList.add("show");
+});
+$("installYes").addEventListener("click", async ()=>{
+  $("installBar").classList.remove("show");
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const r=await deferredPrompt.userChoice;
+    if(r.outcome==="accepted") toast("📲 Installing Dream To Empire…");
+    deferredPrompt=null;
+  }else{
+    showModal("📲","Install the Game",
+      "To install on your phone:<br><br>"+
+      "<b>Android / Chrome:</b> tap the ⋮ menu → <b>Add to Home screen</b>.<br><br>"+
+      "<b>iPhone / Safari:</b> tap Share → <b>Add to Home Screen</b>.","GOT IT");
+  }
+});
+$("installNo").addEventListener("click", ()=>{
+  $("installBar").classList.remove("show");
+  localStorage.setItem("dte_install_hide","1");
+});
+window.addEventListener("appinstalled", ()=>{
+  toast("📲 Installed! Open it from your home screen");
+  $("installBar").classList.remove("show");
+});
+/* Manual install entry in Settings */
+function tryInstall(){
+  if(deferredPrompt){ $("installBar").classList.add("show"); }
+  else{
+    showModal("📲","Install the Game",
+      "To install on your phone:<br><br>"+
+      "<b>Android / Chrome:</b> tap the ⋮ menu → <b>Add to Home screen</b>.<br><br>"+
+      "<b>iPhone / Safari:</b> tap Share → <b>Add to Home Screen</b>.","GOT IT");
+  }
+}
+
+/* ---------- play time ---------- */
+setInterval(()=>{ S.playMs+=1000; },1000);
+
+/* ---------- boot ---------- */
+load();
+applyPhase();
+checkMissions();
+$("soundBtn").textContent=S.sound?"🔊":"🔇";
+render();
+if(dailyReady()) setTimeout(()=>toast("📅 Daily reward available in the menu!"),1500);
+</script>
+</body>
+</html>
