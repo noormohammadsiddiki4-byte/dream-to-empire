@@ -1369,7 +1369,7 @@ let deferredPrompt=null;
     name:"Dream To Empire",
     short_name:"DTE",
     description:"Build four businesses from a single dream. By Noor Mohammad Siddiki.",
-    start_url:"./dream_to_empire_v4.html",
+    start_url:"./index.html",
     scope:"./",
     display:"standalone",
     orientation:"portrait",
@@ -1432,6 +1432,16 @@ function tryInstall(){
 
 /* ---------- play time ---------- */
 setInterval(()=>{ S.playMs+=1000; },1000);
+
+/* ---------- Service Worker (offline support) ---------- */
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("./sw.js").then(
+      ()=>{ /* offline ready */ },
+      ()=>{ /* registration failed (e.g. file://) */ }
+    );
+  });
+}
 
 /* ---------- boot ---------- */
 load();
